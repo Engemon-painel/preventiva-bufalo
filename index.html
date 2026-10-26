@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Preventiva Bufalo Engemon</title>
+<title>Manutenção Preventiva de Geradores Portáteis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
@@ -138,13 +138,20 @@ td.u{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:now
 .zoom button{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px))}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 html{scroll-behavior:smooth}
+.req{color:var(--nok);font-weight:700;margin-left:3px}
+.f.faltando label.l{color:var(--nok)}
+.f.faltando input,.f.faltando select,.f.faltando textarea{border-color:var(--nok)!important;box-shadow:0 0 0 2px var(--nok-soft);background:#FFF7F6}
+.f.faltando::after{content:'* Preencha este campo';color:var(--nok);font:600 12px var(--f-body)}
+.row.falta-obs{outline:2px solid var(--nok);outline-offset:4px;border-radius:6px}
+.row.falta-obs .obs select{border-color:var(--nok)!important;box-shadow:0 0 0 2px var(--nok-soft)}
+.row.falta-obs .obs::after{content:'* Observação obrigatória para NOK';display:block;color:var(--nok);font:600 12px var(--f-body);margin-top:3px}
 </style>
 </head>
 <body>
 
 <div class="wrap">
   <header class="top">
-    <div class="brand"><small>Manutenção preventiva de gerador (GMG)</small><h1>Preventiva Bufalo Engemon</h1></div>
+    <div class="brand"><small>Engemon · Preventiva Bufalo</small><h1>Manutenção Preventiva de Geradores Portáteis</h1></div>
   </header>
 
   <div id="view-novo">
@@ -229,7 +236,7 @@ html{scroll-behavior:smooth}
         <h2>Fechamento</h2>
         <div class="sum" id="resumo"></div>
         <div class="grid">
-          <div class="f"><label class="l" for="status_final">Status da preventiva</label>
+          <div class="f"><label class="l" for="status_final">Status da preventiva<span class="req" aria-hidden="true">*</span></label>
             <select id="status_final" name="status_final"><option value="">Selecione</option><option>Concluída</option><option>Concluída com pendência</option><option>Não realizada</option></select></div>
           <div class="f wide"><label class="l" for="obs_geral">Observações gerais</label><textarea id="obs_geral" name="obs_geral"></textarea></div>
         </div>
@@ -322,12 +329,14 @@ html{scroll-behavior:smooth}
   const fotos = { antes: [], depois: [] };   // fotos do relatório em edição (ficam só na memória até o envio)
 
   // ---------------- montagem
+  const REQ = ['unidade', 'tecnico', 'data', 'status_final'];   // campos obrigatórios
+  let tentouEnviar = false;
   function campos(alvo, lista){
     $(alvo).innerHTML = lista.map(([k, rot, tipo, pad, largo]) => {
       let ctl;
       if (tipo === 'select') ctl = `<select id="${k}" name="${k}">${pad.map(o => `<option value="${esc(o)}">${o ? esc(o) : 'Selecione'}</option>`).join('')}</select>`;
       else ctl = `<input id="${k}" name="${k}" type="${tipo}"${tipo === 'number' ? ' inputmode="decimal" step="any" class="num"' : ''}${pad ? ` value="${esc(pad)}"` : ''}>`;
-      return `<div class="f${largo ? ' wide' : ''}"><label class="l" for="${k}">${rot}</label>${ctl}</div>`;
+      return `<div class="f${largo ? ' wide' : ''}"><label class="l" for="${k}">${rot}${REQ.includes(k) ? '<span class="req" aria-hidden="true">*</span>' : ''}</label>${ctl}</div>`;
     }).join('');
   }
   campos('#g-os', OS); campos('#g-eq', EQ); campos('#g-mo', MO);
@@ -405,7 +414,9 @@ html{scroll-behavior:smooth}
   function atualizar(){
     const r = ler(), c = contar(r);
     document.querySelectorAll('.row').forEach(row => { const k = row.dataset.k, v = r.verificacoes[k];
-      row.classList.toggle('bad', (v.depois || v.antes) === 'NOK'); });
+      row.classList.toggle('bad', (v.depois || v.antes) === 'NOK');
+      row.classList.toggle('falta-obs', tentouEnviar && v.antes === 'NOK' && !v.obs); });
+    REQ.forEach(k => { const e = $('#' + k); e.closest('.f').classList.toggle('faltando', tentouEnviar && !e.value.trim()); e.setAttribute('aria-invalid', tentouEnviar && !e.value.trim() ? 'true' : 'false'); });
     document.querySelectorAll('#secnav a').forEach(a => { const g = a.dataset.g; a.querySelector('.n').textContent = g && c.porGrupo[g] ? c.porGrupo[g] + ' NOK' : ''; });
     $('#resumo').innerHTML = `<span class="pill ok">${c.ok} OK</span><span class="pill nok">${c.nok} NOK no final</span><span class="pill">${c.na} N/A</span>` +
       (c.vazio ? `<span class="pill warn">${c.vazio} sem marcação</span>` : '') + (c.pend ? `<span class="pill nok">${c.pend} NOK sem observação</span>` : '') +
@@ -553,8 +564,8 @@ html{scroll-behavior:smooth}
     const VERDE = '#2E6A4E', CINZA = '#5B6661', LINHA = '#D5DAD5', OKC = '#1F7A4A', NOKC = '#B4332B';
     d.pagina();
     d.ret(0, 0, W, 66, VERDE);
-    d.texto(M, 16, 'Preventiva Bufalo Engemon', 18, true, '#FFFFFF');
-    d.texto(M, 42, 'Relatório de manutenção preventiva de gerador (GMG)', 9, false, '#DCEBE2');
+    d.texto(M, 16, 'Manutenção Preventiva de Geradores Portáteis', 18, true, '#FFFFFF');
+    d.texto(M, 42, 'Engemon · Preventiva Bufalo', 9, false, '#DCEBE2');
     const dir = `${x.id}  ·  ${fmtV(h.data)}`; d.texto(W - M - medir(dir, 9, false), 42, dir, 9, false, '#FFFFFF');
     d.y = 84;
     const secao = t => { d.cabe(44); d.texto(M, d.y, t, 12, true, VERDE); d.ret(M, d.y + 16, LW, 1, VERDE); d.y += 24; };
@@ -628,7 +639,7 @@ html{scroll-behavior:smooth}
         d.y += hh;
       }
     }
-    return d.gerar((i, n) => `Preventiva Bufalo Engemon  ·  ${h.unidade || ''}  ·  ${x.id}  ·  Página ${i} de ${n}`);
+    return d.gerar((i, n) => `Manutenção Preventiva de Geradores Portáteis  ·  ${h.unidade || ''}  ·  ${x.id}  ·  Página ${i} de ${n}`);
   }
   const binParaBlob = bin => { const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i) & 255; return new Blob([u], { type: 'application/pdf' }); };
   let urlPdf = null;
@@ -707,7 +718,13 @@ html{scroll-behavior:smooth}
     if (!r.cabecalho.data) falta.push('Data');
     if (!r.status_final) falta.push('Status da preventiva');
     if (c.pend) falta.push(c.pend + ' item(ns) NOK sem observação');
-    if (falta.length) { msg('Falta preencher: ' + falta.join(', ') + '.', 'err'); return; }
+    if (falta.length) {
+      tentouEnviar = true; atualizar();
+      msg('Falta preencher: ' + falta.join(', ') + '. Os campos estão marcados em vermelho.', 'err');
+      const prim = document.querySelector('.f.faltando, .row.falta-obs');
+      if (prim) { prim.scrollIntoView({ behavior: 'smooth', block: 'center' }); const ctl = prim.querySelector('input, select, textarea'); if (ctl) setTimeout(() => ctl.focus({ preventScroll: true }), 400); }
+      return;
+    }
     if (!FLUXO) { msg('O envio ainda não foi configurado. Avise quem administra o formulário.', 'err'); return; }
     if (!navigator.onLine) { msg('Sem internet agora. O preenchimento fica salvo neste aparelho; envie quando tiver sinal.', 'err'); return; }
     $('#enviar').disabled = true; $('#baixar').hidden = true;
@@ -741,7 +758,7 @@ html{scroll-behavior:smooth}
     TESTE.filter(t => t.length > 1).forEach(t => $('#ref_' + t[0]).value = t[3]);
     $('#data').value = hoje();
     fotos.antes = []; fotos.depois = []; desenharFotos('antes'); desenharFotos('depois'); $('#msg-fotos').textContent = '';
-    pendente = null; $('#enviar').textContent = 'Enviar relatório';
+    pendente = null; tentouEnviar = false; $('#enviar').textContent = 'Enviar relatório';
     try { localStorage.removeItem(RK); } catch (e) {}
     $('#confirma-limpar').hidden = true; atualizar();
     if (!manterMsg) { msg(''); $('#baixar').hidden = true; }
