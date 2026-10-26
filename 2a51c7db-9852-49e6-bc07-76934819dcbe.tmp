@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Preventiva Bufalo Engemon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: prancheta de campo — barra fixa com as seções, blocos empilhados, uma linha por item de verificação */
+:root{
+  --bg:#EEF0EC; --card:#FBFCFA; --ink:#1B2320; --muted:#5B6661; --line:#D5DAD5;
+  --accent:#2E6A4E; --accent-ink:#FFFFFF; --accent-soft:#DCEBE2;
+  --ok:#1F7A4A; --ok-soft:#DDF1E5; --nok:#B4332B; --nok-soft:#F8E0DD; --na:#6B7470; --na-soft:#E4E7E4;
+  --warn:#9A5B00; --warn-soft:#FBEBD0;
+  --f-display:'Barlow Semi Condensed','Arial Narrow',Arial,sans-serif;
+  --f-body:'Barlow',Arial,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141917; --card:#1C2320; --ink:#E7ECE9; --muted:#9AA6A0; --line:#2E3833;
+  --accent:#5FB38A; --accent-ink:#0F1513; --accent-soft:#1F3A2D;
+  --ok:#5CC48D; --ok-soft:#173326; --nok:#F0837A; --nok-soft:#3A1D1A; --na:#9AA6A0; --na-soft:#262E2A;
+  --warn:#E8B260; --warn-soft:#3A2A12; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917; --card:#1C2320; --ink:#E7ECE9; --muted:#9AA6A0; --line:#2E3833;
+  --accent:#5FB38A; --accent-ink:#0F1513; --accent-soft:#1F3A2D;
+  --ok:#5CC48D; --ok-soft:#173326; --nok:#F0837A; --nok-soft:#3A1D1A; --na:#9AA6A0; --na-soft:#262E2A;
+  --warn:#E8B260; --warn-soft:#3A2A12; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:880px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;padding-top:24px}
+.brand small{display:block;font:600 12px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.brand h1{margin:6px 0 0;font:700 32px/1.05 var(--f-display);text-wrap:balance}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tabs button{border:0;background:none;color:var(--muted);font:600 15px var(--f-body);padding:8px 14px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.secnav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin-top:16px;padding:10px 0;border-bottom:1px solid var(--line);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.secnav a{flex:none;text-decoration:none;color:var(--muted);font:600 13px var(--f-body);padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);white-space:nowrap}
+.secnav a .n{font-family:var(--f-mono);color:var(--nok);margin-left:4px}
+form{display:flex;flex-direction:column;gap:18px;margin-top:18px}
+section.blk{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;scroll-margin-top:70px;min-width:0}
+section.blk>h2{margin:0 0 4px;font:700 22px/1.1 var(--f-display);letter-spacing:.01em}
+section.blk>p.hint{margin:0 0 16px;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px 16px}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f.wide{grid-column:1/-1}
+label.l{font:600 13px var(--f-body);color:var(--muted)}
+input,select,textarea{width:100%;font:16px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible,.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:1px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+/* teste de operação */
+.tst{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:middle;font-size:14px}
+th{font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+tr.grp td{font:700 14px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);padding-top:14px}
+td.faixa{color:var(--muted);font-size:13px}
+td input{padding:6px 8px;font-size:15px}
+td.u{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+/* verificações */
+.chk{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1.5fr) auto auto minmax(120px,.8fr);gap:8px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .nm{font-weight:500;min-width:0}
+.row.bad{background:linear-gradient(90deg,var(--nok-soft),transparent 70%)}
+.colh{display:grid;grid-template-columns:minmax(0,1.5fr) auto auto minmax(120px,.8fr);gap:14px;font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line)}
+.colh span:nth-child(2),.colh span:nth-child(3){width:150px;text-align:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;width:150px}
+.seg label{flex:1;position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;margin:0}
+.seg span{display:block;text-align:center;font:600 13px var(--f-body);padding:7px 0;color:var(--muted);border-right:1px solid var(--line)}
+.seg label:last-child span{border-right:0}
+.seg input[value="OK"]:checked+span{background:var(--ok);color:var(--accent-ink)}
+.seg input[value="NOK"]:checked+span{background:var(--nok);color:#FFFFFF}
+.seg input[value="N/A"]:checked+span{background:var(--na);color:var(--card)}
+.tag{display:none;font:600 11px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.row select{padding:7px 8px;font-size:14px}
+@media (max-width:640px){
+  .colh{display:none}
+  .row{grid-template-columns:1fr 1fr;padding:12px 0}
+  .row .nm{grid-column:1/-1}
+  .row .obs{grid-column:1/-1}
+  .seg{width:100%}
+  .tag{display:block;margin-bottom:4px}
+}
+/* pedidos */
+.ped{display:grid;grid-template-columns:minmax(0,2fr) 90px 120px minmax(0,2fr) auto;gap:8px;align-items:end;margin-bottom:8px}
+@media (max-width:640px){.ped{grid-template-columns:1fr 1fr}.ped .f:first-child,.ped .f:nth-child(4){grid-column:1/-1}}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 15px var(--f-body);padding:9px 14px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:none}
+.btn.x{padding:9px 11px;color:var(--nok)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+/* resumo / envio */
+.sum{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.pill{font:600 14px var(--f-body);padding:6px 12px;border-radius:999px;background:var(--na-soft);color:var(--ink)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.nok{background:var(--nok-soft);color:var(--nok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.msg{font-size:14px;color:var(--muted)}
+.msg.err{color:var(--nok)} .msg.okm{color:var(--ok)}
+/* lista */
+.list{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+.item h3{margin:0;font:700 18px/1.2 var(--f-display)}
+.item .meta{color:var(--muted);font-size:14px}
+.item .st{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font:700 20px var(--f-display);margin-bottom:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:18px}
+.toolbar input{max-width:320px}
+/* fotos */
+.fotos-grupos{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.fg{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--bg);min-width:0}
+.fg-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.fg-top h3{margin:0;font:700 18px var(--f-display)}
+.up{display:inline-block}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.thumbs .vazio{grid-column:1/-1;margin:0;color:var(--muted);font-size:14px}
+.th{display:flex;flex-direction:column;gap:4px;min-width:0}
+.th .img{position:relative;aspect-ratio:1;max-width:100%;border-radius:8px;overflow:hidden;background:var(--line)}
+.th img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.th .rm{position:absolute;top:4px;right:4px;border:0;border-radius:999px;width:28px;height:28px;background:rgba(0,0,0,.6);color:#FFFFFF;font:600 14px var(--f-body);cursor:pointer}
+.th input{padding:5px 7px;font-size:13px}
+.th .kb{font:500 11px var(--f-mono);color:var(--muted)}
+.item .fotos{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px;margin-top:6px}
+.item .fotos figure{margin:0;min-width:0}
+.item .fotos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:zoom-in;display:block}
+.item .fotos figcaption{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .ver{justify-self:start;padding:6px 10px;font-size:14px}
+.zoom{position:fixed;inset:0;z-index:20;background:rgba(10,14,12,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.zoom img{max-width:100%;max-height:85%;border-radius:8px}
+.zoom p{color:#E7ECE9;margin:0;font-size:15px}
+.zoom button{position:absolute;top:max(16px,env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px))}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+html{scroll-behavior:smooth}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><small>Manutenção preventiva de gerador (GMG)</small><h1>Preventiva Bufalo Engemon</h1></div>
+  </header>
+
+  <div id="view-novo">
+    <nav class="secnav" id="secnav"></nav>
+    <form id="frm" novalidate>
+      <section class="blk" id="s-os">
+        <h2>Ordem de serviço e cliente</h2>
+        <p class="hint">Dados da OS e do local de atendimento.</p>
+        <div class="grid" id="g-os"></div>
+      </section>
+      <section class="blk" id="s-eq">
+        <h2>Dados do equipamento</h2>
+        <p class="hint">Placa do gerador, motor, alternador e USCA.</p>
+        <div class="grid" id="g-eq"></div>
+      </section>
+      <section class="blk" id="s-mo">
+        <h2>Mão de obra</h2>
+        <p class="hint">Técnico, deslocamento e horário da atividade.</p>
+        <div class="grid" id="g-mo"></div>
+      </section>
+      <section class="blk" id="s-esc">
+        <h2>Escopo e pedidos</h2>
+        <p class="hint">Serviços executados e materiais pedidos em aberto.</p>
+        <div class="grid">
+          <div class="f wide"><label class="l" for="escopo">Escopo dos serviços</label><textarea id="escopo" name="escopo" placeholder="Ex.: Preventiva mensal, teste sem carga, verificação de níveis e reaperto"></textarea></div>
+        </div>
+        <h3 style="font:700 16px var(--f-display);margin:18px 0 8px">Pedidos em aberto</h3>
+        <div id="pedidos"></div>
+        <button type="button" class="btn ghost" id="add-ped">+ Adicionar pedido</button>
+        <div class="grid" style="margin-top:14px">
+          <div class="f wide"><label class="l" for="desc_pedidos">Descrição dos pedidos</label><textarea id="desc_pedidos" name="desc_pedidos"></textarea></div>
+        </div>
+      </section>
+      <section class="blk" id="s-tst">
+        <h2>Teste de operação do grupo gerador</h2>
+        <p class="hint">Medições sem carga. Deixe em branco ou escreva N/A quando não se aplica.</p>
+        <div class="tst"><table>
+          <thead><tr><th style="width:34%">Item</th><th>Unid.</th><th style="width:14%">Referência</th><th>Faixa ideal</th><th style="width:16%">Sem carga</th></tr></thead>
+          <tbody id="t-tst"></tbody>
+        </table></div>
+        <div class="grid" style="margin-top:16px">
+          <div class="f"><label class="l" for="func">Funcionamento</label><select id="func" name="func"><option value="">Selecione</option><option>OK</option><option>NOK</option></select></div>
+          <div class="f"><label class="l" for="teste_inicio">Data e hora do início do teste</label><input id="teste_inicio" name="teste_inicio" type="datetime-local"></div>
+          <div class="f wide"><label class="l" for="teste_obs">Observação do teste</label><input id="teste_obs" name="teste_obs"></div>
+        </div>
+      </section>
+      <section class="blk" id="s-mot">
+        <h2>Verificações · Motor</h2>
+        <p class="hint">Marque antes e depois do serviço. Item NOK pede observação.</p>
+        <div class="chk" id="c-mot"></div>
+      </section>
+      <section class="blk" id="s-ger">
+        <h2>Verificações · Gerador</h2>
+        <div class="chk" id="c-ger"></div>
+      </section>
+      <section class="blk" id="s-usca">
+        <h2>USCA / QTA · Físico e estado</h2>
+        <div class="chk" id="c-usca"></div>
+      </section>
+      <section class="blk" id="s-sala">
+        <h2>Sala do gerador</h2>
+        <div class="chk" id="c-sala"></div>
+      </section>
+      <section class="blk" id="s-fotos">
+        <h2>Fotos</h2>
+        <p class="hint">Até 10 fotos antes e 10 depois do serviço. Tire na hora ou escolha da galeria; elas são reduzidas antes do envio.</p>
+        <div class="fotos-grupos">
+          <div class="fg" data-m="antes">
+            <div class="fg-top"><h3>Antes</h3><label class="btn ghost up" for="up-antes">+ Adicionar fotos</label>
+              <input id="up-antes" type="file" accept="image/*" multiple hidden></div>
+            <div class="thumbs" id="th-antes"><p class="vazio">Nenhuma foto ainda.</p></div>
+          </div>
+          <div class="fg" data-m="depois">
+            <div class="fg-top"><h3>Depois</h3><label class="btn ghost up" for="up-depois">+ Adicionar fotos</label>
+              <input id="up-depois" type="file" accept="image/*" multiple hidden></div>
+            <div class="thumbs" id="th-depois"><p class="vazio">Nenhuma foto ainda.</p></div>
+          </div>
+        </div>
+        <p class="msg" id="msg-fotos"></p>
+      </section>
+      <section class="blk" id="s-fim">
+        <h2>Fechamento</h2>
+        <div class="sum" id="resumo"></div>
+        <div class="grid">
+          <div class="f"><label class="l" for="status_final">Status da preventiva</label>
+            <select id="status_final" name="status_final"><option value="">Selecione</option><option>Concluída</option><option>Concluída com pendência</option><option>Não realizada</option></select></div>
+          <div class="f wide"><label class="l" for="obs_geral">Observações gerais</label><textarea id="obs_geral" name="obs_geral"></textarea></div>
+        </div>
+        <div class="actions" style="margin-top:16px">
+          <button type="submit" class="btn primary" id="enviar">Enviar relatório</button>
+          <button type="button" class="btn ghost" id="gerar-pdf">Baixar PDF</button>
+          <button type="button" class="btn ghost" id="limpar">Limpar formulário</button>
+          <span class="msg" id="msg" role="status"></span>
+          <a class="btn ghost" id="baixar" hidden>Baixar o PDF enviado</a>
+        </div>
+        <div id="confirma-limpar" hidden style="margin-top:12px" class="actions">
+          <span class="msg">Apagar tudo o que foi preenchido?</span>
+          <button type="button" class="btn x" id="limpar-sim">Sim, limpar</button>
+          <button type="button" class="btn ghost" id="limpar-nao">Cancelar</button>
+        </div>
+      </section>
+    </form>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // ---------------- definição do formulário (itens riscados no modelo em papel ficaram de fora)
+  const OS = [
+    ['os','Nº Ordem de serviço','text'],['solicitacao','Nº Solicitação','text'],
+    ['cliente','Cliente','text','ENGEMON COMÉRCIO E SERVIÇOS TÉCNICOS LTDA'],['cod_cliente','Código cliente','text'],
+    ['unidade','Unidade / Site','text'],['regiao','Região','text'],
+    ['endereco','Endereço de atendimento','text',null,true],
+    ['tipo_contrato','Tipo de contrato','select',['','Com peças','Sem peças']],
+    ['horario_ponta','Trabalha em horário de ponta','select',['','Stand-By','Contínuo','Horário de ponta']],
+    ['tec_ultima','Técnico da última preventiva','text'],['data_ultima','Data da última preventiva','date']
+  ];
+  const EQ = [
+    ['nr_equip','Nº equipamento','text','GMG 01'],['tipo_equip','Tipo de equipamento','text','Grupo Gerador'],
+    ['fabricante','Fabricante','text'],['ano_fab','Ano de fabricação','number'],
+    ['pot_kva','Potência (kVA)','number'],['pot_kw','Potência elétrica (kW)','number'],
+    ['tensao','Tensão','text'],['corrente','Corrente (A)','number'],
+    ['fp','Fator de potência','number'],['frequencia','Frequência (Hz)','number'],
+    ['motor','Motor','text'],['modelo_motor','Modelo do motor','text'],['nr_motor','Nº do motor','text'],
+    ['alternador','Alternador','text'],['modelo_alt','Modelo do alternador','text'],['nr_alt','Nº do alternador','text'],
+    ['usca','USCA modelo','text'],['painel','Painel de controle','text'],
+    ['hor_antes','Horímetro antes','number'],['hor_depois','Horímetro depois','number'],
+    ['telemetria','Possui telemetria Energ?','select',['','Sim','Não']]
+  ];
+  const MO = [
+    ['tecnico','Técnico','text'],['data','Data','date'],
+    ['km_inicio','Km início deslocamento','number'],['km_chegada','Km chegada no cliente','number'],
+    ['hora_inicio','Hora início da atividade','time'],['hora_fim','Hora término da atividade','time'],
+    ['prox_destino','Próximo destino','text',null,true]
+  ];
+  // [chave, item, unidade, referência padrão, faixa ideal]
+  const TESTE = [
+    ['GMG'],
+    ['gmg_r','Tensão fase R','V','','± 5%'],['gmg_s','Tensão fase S','V','','± 5%'],['gmg_t','Tensão fase T','V','','± 5%'],
+    ['Rede'],
+    ['rede_r','Tensão fase R','V','','± 5%'],['rede_s','Tensão fase S','V','','± 5%'],['rede_t','Tensão fase T','V','','± 5%'],
+    ['Corrente'],
+    ['cor_r','Fase R','A','','30 a 100%'],['cor_s','Fase S','A','','30 a 100%'],['cor_t','Fase T','A','','30 a 100%'],
+    ['Bateria e alternador'],
+    ['bat_lig','Tensão da bateria com carregador ligado','V','12 ou 24 Vcc','+110% a 115%'],
+    ['bat_desl','Tensão da bateria com carregador desligado','V','12 ou 24 Vcc','Acima de 103%'],
+    ['bat_part','Tensão da bateria no instante da partida','V','12 ou 24 Vcc','Acima de 75%'],
+    ['alt_carga','Tensão do alternador de baterias em carga','V','12 ou 24 Vcc','+110% a 119%'],
+    ['Operação'],
+    ['freq','Frequência','Hz','60','± 5%'],['potencia','Potência','kVA','','0% a 100%'],
+    ['consumo','Consumo de combustível','L/h','','']
+  ];
+  const MOTOR = ['Motor necessita de lavagem','Óleo lubrificante','Filtro de óleo lubrificante','Sistema de lubrificação','Combustível',
+    'Filtro de óleo combustível','Tanque de combustível','Sistema de injeção','Bomba d’água','Filtro de ar',
+    'Abraçadeiras (condições e reaperto)','Mangueiras (condições e reaperto)','Suportes do motor (coxins)','Escapamento',
+    'Alternador da bateria','Bateria','Motor de partida'];
+  const GERADOR = ['Limpeza do gerador','Isolação do gerador','Ponte de diodo verificada','Coxim do regulador de tensão',
+    'Bobina auxiliar gerador / regulador de tensão'];
+  const USCA = ['Estado e limpeza do painel','Identificações do painel','Medidores do painel (voltímetro, amperímetro etc.)',
+    'Componentes frontais do painel (chaves, botões etc.)','Componentes internos do painel (bornes, relés etc.)',
+    'Conexões elétricas (estado das ligações de comando)','Regulador de tensão','Contator / disjuntor','Bobinas do disjuntor'];
+  const SALA = ['Estado da sala','Estado do equipamento'];
+  const GRUPOS = [['mot','Motor',MOTOR],['ger','Gerador',GERADOR],['usca','USCA/QTA',USCA],['sala','Sala',SALA]];
+  const OBS = ['','Verificado','Resolvido','Pendente','Substituído','Não se aplica'];
+  const NAV = [['s-os','OS'],['s-eq','Equipamento'],['s-mo','Mão de obra'],['s-esc','Escopo'],['s-tst','Teste'],
+    ['s-mot','Motor','mot'],['s-ger','Gerador','ger'],['s-usca','USCA/QTA','usca'],['s-sala','Sala','sala'],['s-fotos','Fotos'],['s-fim','Fechamento']];
+
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,40);
+  const hoje = () => new Date().toLocaleDateString('sv-SE');
+  const MAX_FOTOS = 10, MAX_B64 = 230000;
+  const fotos = { antes: [], depois: [] };   // fotos do relatório em edição (ficam só na memória até o envio)
+
+  // ---------------- montagem
+  function campos(alvo, lista){
+    $(alvo).innerHTML = lista.map(([k, rot, tipo, pad, largo]) => {
+      let ctl;
+      if (tipo === 'select') ctl = `<select id="${k}" name="${k}">${pad.map(o => `<option value="${esc(o)}">${o ? esc(o) : 'Selecione'}</option>`).join('')}</select>`;
+      else ctl = `<input id="${k}" name="${k}" type="${tipo}"${tipo === 'number' ? ' inputmode="decimal" step="any" class="num"' : ''}${pad ? ` value="${esc(pad)}"` : ''}>`;
+      return `<div class="f${largo ? ' wide' : ''}"><label class="l" for="${k}">${rot}</label>${ctl}</div>`;
+    }).join('');
+  }
+  campos('#g-os', OS); campos('#g-eq', EQ); campos('#g-mo', MO);
+  $('#data').value = hoje();
+
+  $('#t-tst').innerHTML = TESTE.map(t => t.length === 1
+    ? `<tr class="grp"><td colspan="5">${t[0]}</td></tr>`
+    : `<tr><td>${t[1]}</td><td class="u">${t[2]}</td>
+        <td><input id="ref_${t[0]}" name="ref_${t[0]}" class="num" value="${esc(t[3])}" aria-label="Referência ${esc(t[1])}"></td>
+        <td class="faixa">${t[4] || '—'}</td>
+        <td><input id="sc_${t[0]}" name="sc_${t[0]}" class="num" inputmode="decimal" aria-label="Sem carga ${esc(t[1])}"></td></tr>`).join('');
+
+  const seg = (nome, quando) => `<span class="tag">${quando}</span><div class="seg" role="radiogroup" aria-label="${quando}">` +
+    ['OK','NOK','N/A'].map(v => `<label><input type="radio" name="${nome}" value="${v}"><span>${v}</span></label>`).join('') + '</div>';
+  GRUPOS.forEach(([g, , itens]) => {
+    $('#c-' + g).innerHTML = `<div class="colh"><span>Item</span><span>Antes</span><span>Depois</span><span>Observação</span></div>` +
+      itens.map(it => { const k = g + '_' + slug(it); return `<div class="row" data-k="${k}">
+        <div class="nm">${esc(it)}</div>
+        <div>${seg(k + '__antes', 'Antes')}</div>
+        <div>${seg(k + '__depois', 'Depois')}</div>
+        <div class="obs"><select id="${k}__obs" name="${k}__obs" aria-label="Observação ${esc(it)}">${OBS.map(o => `<option value="${o}">${o || 'Observação'}</option>`).join('')}</select></div></div>`; }).join('');
+  });
+
+  // pedidos em aberto (linhas dinâmicas)
+  let nPed = 0;
+  function addPedido(v){
+    v = v || {}; const i = nPed++;
+    const d = document.createElement('div'); d.className = 'ped'; d.dataset.i = i;
+    d.innerHTML = `<div class="f"><label class="l" for="ped_${i}_pedido">Pedido</label><input id="ped_${i}_pedido" value="${esc(v.pedido)}"></div>
+      <div class="f"><label class="l" for="ped_${i}_qtd">Qtde</label><input id="ped_${i}_qtd" class="num" inputmode="decimal" value="${esc(v.qtd)}"></div>
+      <div class="f"><label class="l" for="ped_${i}_real">Realizado</label><select id="ped_${i}_real"><option value=""></option><option${v.realizado === 'Sim' ? ' selected' : ''}>Sim</option><option${v.realizado === 'Não' ? ' selected' : ''}>Não</option></select></div>
+      <div class="f"><label class="l" for="ped_${i}_just">Justificativa</label><input id="ped_${i}_just" value="${esc(v.justificativa)}"></div>
+      <button type="button" class="btn x" aria-label="Remover pedido">✕</button>`;
+    d.querySelector('.btn.x').onclick = () => { d.remove(); salvarRascunho(); };
+    $('#pedidos').appendChild(d);
+  }
+  $('#add-ped').onclick = () => addPedido();
+
+  $('#secnav').innerHTML = NAV.map(([id, r, g]) => `<a href="#${id}" data-g="${g || ''}">${r}<span class="n"></span></a>`).join('');
+
+  // ---------------- leitura do formulário
+  const radio = n => { const e = document.querySelector(`input[name="${n}"]:checked`); return e ? e.value : ''; };
+  function ler(){
+    const r = { cabecalho: {}, teste: {}, verificacoes: {}, pedidos: [] };
+    [...OS, ...EQ, ...MO].forEach(([k]) => r.cabecalho[k] = $('#' + k).value.trim());
+    ['escopo','desc_pedidos','func','teste_inicio','teste_obs','status_final','obs_geral'].forEach(k => r[k] = $('#' + k).value.trim());
+    TESTE.filter(t => t.length > 1).forEach(t => r.teste[t[0]] = { ref: $('#ref_' + t[0]).value.trim(), sem_carga: $('#sc_' + t[0]).value.trim() });
+    GRUPOS.forEach(([g, , itens]) => itens.forEach(it => { const k = g + '_' + slug(it);
+      r.verificacoes[k] = { antes: radio(k + '__antes'), depois: radio(k + '__depois'), obs: $('#' + k + '__obs').value }; }));
+    document.querySelectorAll('#pedidos .ped').forEach(d => { const i = d.dataset.i;
+      const p = { pedido: $(`#ped_${i}_pedido`).value.trim(), qtd: $(`#ped_${i}_qtd`).value.trim(), realizado: $(`#ped_${i}_real`).value, justificativa: $(`#ped_${i}_just`).value.trim() };
+      if (p.pedido || p.qtd || p.justificativa) r.pedidos.push(p); });
+    return r;
+  }
+  function preencher(r){
+    if (!r) return;
+    Object.entries(r.cabecalho || {}).forEach(([k, v]) => { const e = $('#' + k); if (e) e.value = v; });
+    ['escopo','desc_pedidos','func','teste_inicio','teste_obs','status_final','obs_geral'].forEach(k => { if (r[k] != null) $('#' + k).value = r[k]; });
+    Object.entries(r.teste || {}).forEach(([k, v]) => { const a = $('#ref_' + k), b = $('#sc_' + k); if (a) a.value = v.ref || ''; if (b) b.value = v.sem_carga || ''; });
+    Object.entries(r.verificacoes || {}).forEach(([k, v]) => {
+      ['antes','depois'].forEach(q => { const e = document.querySelector(`input[name="${k}__${q}"][value="${v[q]}"]`); if (e) e.checked = true; });
+      const o = $('#' + k + '__obs'); if (o) o.value = v.obs || ''; });
+    $('#pedidos').innerHTML = ''; (r.pedidos || []).forEach(addPedido);
+  }
+
+  // ---------------- resumo e validação
+  function contar(r){
+    const c = { ok: 0, nok: 0, na: 0, vazio: 0, pend: 0, porGrupo: {} };
+    GRUPOS.forEach(([g, , itens]) => { c.porGrupo[g] = 0; itens.forEach(it => { const v = r.verificacoes[g + '_' + slug(it)];
+      const fim = v.depois || v.antes;
+      if (!v.antes && !v.depois) c.vazio++; else if (fim === 'OK') c.ok++; else if (fim === 'NOK') { c.nok++; c.porGrupo[g]++; } else c.na++;
+      if (v.antes === 'NOK' && !v.obs) c.pend++; }); });
+    return c;
+  }
+  function atualizar(){
+    const r = ler(), c = contar(r);
+    document.querySelectorAll('.row').forEach(row => { const k = row.dataset.k, v = r.verificacoes[k];
+      row.classList.toggle('bad', (v.depois || v.antes) === 'NOK'); });
+    document.querySelectorAll('#secnav a').forEach(a => { const g = a.dataset.g; a.querySelector('.n').textContent = g && c.porGrupo[g] ? c.porGrupo[g] + ' NOK' : ''; });
+    $('#resumo').innerHTML = `<span class="pill ok">${c.ok} OK</span><span class="pill nok">${c.nok} NOK no final</span><span class="pill">${c.na} N/A</span>` +
+      (c.vazio ? `<span class="pill warn">${c.vazio} sem marcação</span>` : '') + (c.pend ? `<span class="pill nok">${c.pend} NOK sem observação</span>` : '') +
+      `<span class="pill">${fotos.antes.length} foto(s) antes · ${fotos.depois.length} depois</span>`;
+    return { r, c };
+  }
+
+  // ---------------- rascunho neste aparelho
+  const RK = 'preventiva-bufalo-rascunho';
+  let tRas;
+  function salvarRascunho(){ clearTimeout(tRas); tRas = setTimeout(() => { try { localStorage.setItem(RK, JSON.stringify(ler())); } catch (e) {} }, 400); }
+  try { const s = localStorage.getItem(RK); if (s) preencher(JSON.parse(s)); } catch (e) {}
+  if (!document.querySelector('#pedidos .ped')) addPedido();
+  const frm = $('#frm');
+  frm.addEventListener('input', () => { atualizar(); salvarRascunho(); });
+  frm.addEventListener('change', () => { atualizar(); salvarRascunho(); });
+  atualizar();
+
+  // ---------------- fotos (reduzidas no aparelho; cada foto vira um documento separado no banco)
+  const lerImagem = file => new Promise((ok, erro) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { URL.revokeObjectURL(url); ok(im); };
+    im.onerror = () => { URL.revokeObjectURL(url); erro(new Error('imagem')); };
+    im.src = url;
+  });
+  async function reduzir(file){
+    const im = await lerImagem(file);
+    let lado = 1280, q = 0.72, out = '';
+    for (let tent = 0; tent < 8; tent++) {
+      const k = Math.min(1, lado / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      out = c.toDataURL('image/jpeg', q);
+      if (out.length <= MAX_B64) return out;
+      if (q > 0.5) q -= 0.1; else lado = Math.round(lado * 0.8);
+    }
+    return out.length <= MAX_B64 ? out : null;
+  }
+  function desenharFotos(m){
+    const el = $('#th-' + m), L = fotos[m];
+    if (!L.length) { el.innerHTML = '<p class="vazio">Nenhuma foto ainda.</p>'; return; }
+    el.innerHTML = L.map((f, i) => `<div class="th"><div class="img"><img src="${f.img}" alt="Foto ${m} ${i + 1}">
+      <button type="button" class="rm" data-i="${i}" aria-label="Remover foto">✕</button></div>
+      <input id="leg-${m}-${f.k}" placeholder="Legenda (opcional)" value="${esc(f.legenda)}" aria-label="Legenda da foto ${m} ${i + 1}">
+      <span class="kb">${Math.round(f.img.length * 0.75 / 1024)} KB</span></div>`).join('');
+    el.querySelectorAll('.rm').forEach(b => b.onclick = () => { L.splice(+b.dataset.i, 1); desenharFotos(m); atualizar(); });
+    el.querySelectorAll('input').forEach((inp, i) => inp.oninput = () => { L[i].legenda = inp.value; });
+    el.querySelectorAll('img').forEach((im, i) => im.onclick = () => abrirZoom(L[i].img, L[i].legenda));
+  }
+  let seqFoto = 0;
+  ['antes', 'depois'].forEach(m => {
+    $('#up-' + m).addEventListener('change', async ev => {
+      const arqs = [...ev.target.files]; ev.target.value = '';
+      const mf = $('#msg-fotos'); mf.className = 'msg';
+      const cabe = MAX_FOTOS - fotos[m].length;
+      if (arqs.length > cabe) { mf.textContent = `Limite de ${MAX_FOTOS} fotos ${m}: ${arqs.length - cabe} foto(s) não entraram.`; mf.className = 'msg err'; }
+      for (const f of arqs.slice(0, Math.max(0, cabe))) {
+        try { const img = await reduzir(f); if (img) fotos[m].push({ k: seqFoto++, img, legenda: '' }); else throw 0; }
+        catch (e) { mf.textContent = 'Uma das fotos não pôde ser lida. Tente outra imagem (JPG ou PNG).'; mf.className = 'msg err'; }
+        desenharFotos(m);
+      }
+      atualizar();
+    });
+  });
+  function abrirZoom(src, leg){
+    const z = document.createElement('div'); z.className = 'zoom'; z.setAttribute('role', 'dialog');
+    z.innerHTML = `<button type="button" class="btn">Fechar</button><img src="${src}" alt="${esc(leg || 'Foto')}">${leg ? `<p>${esc(leg)}</p>` : ''}`;
+    const fechar = () => { z.remove(); document.removeEventListener('keydown', tecla); };
+    const tecla = e => { if (e.key === 'Escape') fechar(); };
+    z.querySelector('button').onclick = fechar; z.onclick = e => { if (e.target === z) fechar(); };
+    document.addEventListener('keydown', tecla); document.body.appendChild(z); z.querySelector('button').focus();
+  }
+
+  // ---------------- PDF do relatório (gerador próprio, sem biblioteca: texto Helvetica + fotos JPEG)
+  const medidor = document.createElement('canvas').getContext('2d');
+  const medir = (t, size, bold) => { medidor.font = (bold ? 'bold ' : '') + size + 'px Helvetica, Arial, sans-serif'; return medidor.measureText(t).width; };
+  const WIN = { 0x2019: 0x92, 0x2018: 0x91, 0x201C: 0x93, 0x201D: 0x94, 0x2013: 0x96, 0x2014: 0x97, 0x2022: 0x95, 0x2026: 0x85, 0x20AC: 0x80 };
+  function pdfStr(s){
+    let o = '(';
+    for (const ch of String(s).replace(/[\u0000-\u001F]/g, ' ')) {
+      const c = ch.codePointAt(0), b = c < 0x100 ? c : (WIN[c] || 0x3F);
+      o += (b === 0x28 || b === 0x29 || b === 0x5C ? '\\' : '') + String.fromCharCode(b);
+    }
+    return o + ')';
+  }
+  function quebrar(t, size, bold, maxW){
+    t = String(t == null ? '' : t).replace(/\s+/g, ' ').trim(); if (!t) return [''];
+    const out = []; let cur = '';
+    t.split(' ').forEach(w => {
+      while (w.length > 1 && medir(w, size, bold) > maxW) {
+        let k = w.length; while (k > 1 && medir(w.slice(0, k), size, bold) > maxW) k--;
+        if (cur) { out.push(cur); cur = ''; }
+        out.push(w.slice(0, k)); w = w.slice(k);
+      }
+      const tent = cur ? cur + ' ' + w : w;
+      if (medir(tent, size, bold) <= maxW) cur = tent; else { out.push(cur); cur = w; }
+    });
+    if (cur) out.push(cur);
+    return out;
+  }
+  function novoPdf(){
+    const W = 595.28, H = 841.89, M = 36, pags = [], imgs = [];
+    let ops = null;
+    const cor = hex => [1, 3, 5].map(i => (parseInt(hex.substr(i, 2), 16) / 255).toFixed(3)).join(' ');
+    const f = n => n.toFixed(2);
+    const d = {
+      W, H, M, y: 0,
+      pagina(){ ops = []; pags.push(ops); d.y = M; },
+      cabe(h){ if (d.y + h > H - M - 14) { d.pagina(); return false; } return true; },
+      texto(x, y, t, size, bold, c){ ops.push(`BT /${bold ? 'F2' : 'F1'} ${size} Tf ${cor(c || '#1B2320')} rg ${f(x)} ${f(H - y - size * 0.8)} Td ${pdfStr(t)} Tj ET`); },
+      ret(x, y, w, h, fill){ ops.push(`${cor(fill)} rg ${f(x)} ${f(H - y - h)} ${f(w)} ${f(h)} re f`); },
+      imagem(bin, iw, ih, x, y, w, h){ const n = imgs.push({ bin, iw, ih }); ops.push(`q ${f(w)} 0 0 ${f(h)} ${f(x)} ${f(H - y - h)} cm /Im${n} Do Q`); },
+      gerar(rodape){
+        const n = pags.length;
+        pags.forEach((o, i) => { ops = o; d.texto(M, H - M + 14, rodape(i + 1, n), 7, false, '#8A938E'); });
+        const objs = ['<< /Type /Catalog /Pages 2 0 R >>', '',
+          '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+          '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
+        const xo = imgs.map((im, i) => { objs.push(`<< /Type /XObject /Subtype /Image /Width ${im.iw} /Height ${im.ih} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bin.length} >>\nstream\n${im.bin}\nendstream`); return `/Im${i + 1} ${objs.length} 0 R`; }).join(' ');
+        const kids = [];
+        pags.forEach(o => {
+          const c = o.join('\n');
+          objs.push(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`);
+          objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xo} >> >> /Contents ${objs.length} 0 R >>`);
+          kids.push(objs.length + ' 0 R');
+        });
+        objs[1] = `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
+        let out = '%PDF-1.4\n%âãÏÓ\n'; const offs = [];
+        objs.forEach((o, i) => { offs.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+        const xref = out.length;
+        out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map(o => String(o).padStart(10, '0') + ' 00000 n \n').join('');
+        return out + `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+      }
+    };
+    return d;
+  }
+  const tamanho = src => new Promise(ok => { const im = new Image(); im.onload = () => ok([im.naturalWidth, im.naturalHeight]); im.onerror = () => ok(null); im.src = src; });
+  const fmtV = v => { v = String(v == null ? '' : v).trim(); if (!v) return '—';
+    const m = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}:\d{2}))?$/); return m ? `${m[3]}/${m[2]}/${m[1]}${m[4] ? ' ' + m[4] : ''}` : v; };
+
+  // monta o relatório: devolve o PDF como "string binária" (1 caractere = 1 byte)
+  async function montarPdf(x){
+    const d = novoPdf(), W = d.W, M = d.M, LW = W - 2 * M, h = x.cabecalho;
+    const VERDE = '#2E6A4E', CINZA = '#5B6661', LINHA = '#D5DAD5', OKC = '#1F7A4A', NOKC = '#B4332B';
+    d.pagina();
+    d.ret(0, 0, W, 66, VERDE);
+    d.texto(M, 16, 'Preventiva Bufalo Engemon', 18, true, '#FFFFFF');
+    d.texto(M, 42, 'Relatório de manutenção preventiva de gerador (GMG)', 9, false, '#DCEBE2');
+    const dir = `${x.id}  ·  ${fmtV(h.data)}`; d.texto(W - M - medir(dir, 9, false), 42, dir, 9, false, '#FFFFFF');
+    d.y = 84;
+    const secao = t => { d.cabe(44); d.texto(M, d.y, t, 12, true, VERDE); d.ret(M, d.y + 16, LW, 1, VERDE); d.y += 24; };
+    const grade = (lista, val) => { const n = 3, cw = LW / n;
+      for (let i = 0; i < lista.length; i += n) {
+        const row = lista.slice(i, i + n).map(([k, rot]) => ({ rot, lin: quebrar(fmtV(val(k)), 9, false, cw - 10) }));
+        const hh = 12 + Math.max(...row.map(c => c.lin.length)) * 11 + 6;
+        d.cabe(hh);
+        row.forEach((c, j) => { const x0 = M + j * cw; d.texto(x0, d.y, c.rot.toUpperCase(), 6.5, true, CINZA); c.lin.forEach((l, q) => d.texto(x0, d.y + 10 + q * 11, l, 9)); });
+        d.y += hh;
+      }
+      d.y += 4; };
+    const paragrafo = (rot, txt) => { if (!String(txt || '').trim()) return;
+      d.cabe(26); d.texto(M, d.y, rot.toUpperCase(), 6.5, true, CINZA); d.y += 10;
+      String(txt).split(/\n/).forEach(p => quebrar(p, 9, false, LW).forEach(l => { d.cabe(11); d.texto(M, d.y, l, 9); d.y += 11; }));
+      d.y += 8; };
+    const tabela = (cols, rows) => { const pad = 4, fs = 8.5, lh = 10.5;
+      const cab = () => { d.ret(M, d.y, LW, 16, '#E4E7E4'); let x0 = M; cols.forEach(c => { d.texto(x0 + pad, d.y + 4.5, c.t, 7.5, true, CINZA); x0 += c.w * LW; }); d.y += 16; };
+      d.cabe(16 + lh + 2 * pad); cab();
+      rows.forEach(r => {
+        const g = r.grupo, ls = g ? [[r.cel[0]]] : r.cel.map((v, ci) => quebrar(v === '' || v == null ? '—' : v, fs, false, cols[ci].w * LW - 2 * pad));
+        const hh = Math.max(...ls.map(l => l.length)) * lh + 2 * pad;
+        if (!d.cabe(hh)) cab();
+        if (g) d.ret(M, d.y, LW, hh, '#EEF0EC');
+        let x0 = M;
+        ls.forEach((l, ci) => { const c = (r.cor && r.cor[ci]) || '#1B2320';
+          l.forEach((t, q) => d.texto(x0 + pad, d.y + pad + q * lh, t, fs, g || !!(r.cor && r.cor[ci]), c)); x0 += cols[ci].w * LW; });
+        d.ret(M, d.y + hh - 0.5, LW, 0.5, LINHA); d.y += hh;
+      });
+      d.y += 10; };
+
+    secao('Ordem de serviço e cliente'); grade(OS, k => h[k]);
+    secao('Dados do equipamento'); grade(EQ, k => h[k]);
+    secao('Mão de obra'); grade(MO, k => h[k]);
+    secao('Escopo e pedidos');
+    paragrafo('Escopo dos serviços', x.escopo || '—');
+    const peds = (x.pedidos || []).filter(p => p.pedido || p.qtd || p.justificativa);
+    if (peds.length) tabela([{ t: 'PEDIDO', w: .38 }, { t: 'QTD', w: .1 }, { t: 'REALIZADO', w: .14 }, { t: 'JUSTIFICATIVA', w: .38 }],
+      peds.map(p => ({ cel: [p.pedido, p.qtd, p.realizado, p.justificativa] })));
+    paragrafo('Descrição dos pedidos', x.desc_pedidos);
+
+    secao('Teste de operação do grupo gerador');
+    tabela([{ t: 'ITEM', w: .40 }, { t: 'UNID.', w: .08 }, { t: 'REFERÊNCIA', w: .16 }, { t: 'FAIXA IDEAL', w: .18 }, { t: 'SEM CARGA', w: .18 }],
+      TESTE.map(t => t.length === 1 ? { grupo: true, cel: [t[0]] } : (v => ({ cel: [t[1], t[2], v.ref, t[4], v.sem_carga] }))((x.teste || {})[t[0]] || {})));
+    grade([['func', 'Funcionamento'], ['teste_inicio', 'Início do teste'], ['teste_obs', 'Observação do teste']], k => x[k]);
+
+    secao('Verificações (antes e depois do serviço)');
+    const corSt = v => v === 'OK' ? OKC : v === 'NOK' ? NOKC : null;
+    tabela([{ t: 'ITEM', w: .46 }, { t: 'ANTES', w: .12 }, { t: 'DEPOIS', w: .12 }, { t: 'OBSERVAÇÃO', w: .30 }],
+      GRUPOS.flatMap(([g, nome, itens]) => [{ grupo: true, cel: [nome] }].concat(itens.map(it => { const v = (x.verificacoes || {})[g + '_' + slug(it)] || {};
+        return { cel: [it, v.antes, v.depois, v.obs], cor: [null, corSt(v.antes), corSt(v.depois), null] }; }))));
+
+    secao('Fechamento');
+    grade([['st', 'Status da preventiva'], ['ok', 'Itens OK'], ['nok', 'Itens NOK']], k => ({ st: x.status_final, ok: x.resumo.ok, nok: x.resumo.nok })[k]);
+    paragrafo('Observações gerais', x.obs_geral);
+
+    for (const [m, rot] of [['antes', 'Antes'], ['depois', 'Depois']]) {
+      const L = fotos[m]; if (!L.length) continue;
+      secao('Fotos · ' + rot);
+      const gap = 12, cw = (LW - gap) / 2, maxH = 200;
+      for (let i = 0; i < L.length; i += 2) {
+        const par = (await Promise.all(L.slice(i, i + 2).map(async (ft, j) => { const dm = await tamanho(ft.img); if (!dm) return null;
+          const k = Math.min(cw / dm[0], maxH / dm[1]);
+          return { ft, dm, w: dm[0] * k, h: dm[1] * k, leg: quebrar(`${rot} ${i + j + 1}` + (ft.legenda ? ' — ' + ft.legenda : ''), 8, false, cw) }; }))).filter(Boolean);
+        if (!par.length) continue;
+        const hh = Math.max(...par.map(p => p.h + 6 + p.leg.length * 10)) + 12;
+        d.cabe(hh);
+        par.forEach((p, j) => { const x0 = M + j * (cw + gap);
+          d.imagem(atob(p.ft.img.split(',')[1]), p.dm[0], p.dm[1], x0, d.y, p.w, p.h);
+          p.leg.forEach((t, q) => d.texto(x0, d.y + p.h + 5 + q * 10, t, 8, false, CINZA)); });
+        d.y += hh;
+      }
+    }
+    return d.gerar((i, n) => `Preventiva Bufalo Engemon  ·  ${h.unidade || ''}  ·  ${x.id}  ·  Página ${i} de ${n}`);
+  }
+  const binParaBlob = bin => { const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i) & 255; return new Blob([u], { type: 'application/pdf' }); };
+  let urlPdf = null;
+  function oferecer(bin, nome, el){
+    if (urlPdf) URL.revokeObjectURL(urlPdf);
+    urlPdf = URL.createObjectURL(binParaBlob(bin));
+    el.href = urlPdf; el.download = nome; el.hidden = false;
+  }
+
+  // ---------------- envio para o Power Automate
+  // Cole aqui a URL do gatilho "Quando uma solicitação HTTP for recebida" do fluxo "Preventiva Bufalo - Receber"
+  const FLUXO = 'https://defaultc54e138a79f54294aa9bb004cf8d7f.f7.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/27/workflows/32a0f17f6ff04205a4b23243a4e1b956/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=01vO8koD8TGEjjql_XEp6_gA9OaH7XjH-qgLD0f3fpw';
+  let pendente = null;   // relatório já gravado no Excel cujo PDF ainda não subiu
+  const msg = (t, cls) => { const m = $('#msg'); m.textContent = t; m.className = 'msg ' + (cls || ''); };
+  if (!FLUXO) msg('Formulário ainda não ligado ao fluxo: o envio não funciona até colar o link do fluxo no arquivo.', 'err');
+
+  async function postar(corpo){
+    const r = await fetch(FLUXO, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, body: JSON.stringify(corpo) });
+    const txt = await r.text();
+    let resp = null; try { resp = JSON.parse(txt); } catch (e) { }
+    if (resp && typeof resp.result === 'string') { try { resp = JSON.parse(resp.result); } catch (e) { } }
+    if (!r.ok || (resp && resp.ok === false)) throw new Error((resp && resp.erro) || ('o fluxo respondeu ' + r.status));
+    return resp;
+  }
+  const dois = n => String(n).padStart(2, '0');
+  function novoId(){
+    const d = new Date();
+    return 'PB' + d.getFullYear() + dois(d.getMonth() + 1) + dois(d.getDate()) + '-' + dois(d.getHours()) + dois(d.getMinutes()) + dois(d.getSeconds()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+  }
+  const limpaNome = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_|_$/g, '').slice(0, 30);
+  const nomePdf = (id, h) => [h.data || '', limpaNome(h.unidade) || 'site', id].join('_') + '.pdf';
+
+  // uma linha por relatório na planilha (colunas na mesma ordem sempre)
+  function linhaExcel(x){
+    const h = x.cabecalho || {}, col = [];
+    const add = (nome, v) => col.push([nome, v == null ? '' : v]);
+    add('ID', x.id);
+    add('Enviado em', new Date(x.criadoEm).toLocaleString('pt-BR'));
+    [...OS, ...EQ, ...MO].forEach(([k, rot]) => add(rot, h[k]));
+    add('Escopo dos serviços', x.escopo);
+    add('Pedidos em aberto', (x.pedidos || []).filter(p => p.pedido).map(p => `${p.pedido} (${p.qtd}) realizado: ${p.realizado || '-'}${p.justificativa ? ' - ' + p.justificativa : ''}`).join(' | '));
+    add('Descrição dos pedidos', x.desc_pedidos);
+    TESTE.filter(t => t.length > 1).forEach(t => { const v = (x.teste || {})[t[0]] || {};
+      const grp = TESTE.slice(0, TESTE.indexOf(t)).filter(z => z.length === 1).pop()[0];
+      add(`${grp} - ${t[1]} (${t[2]}) referência`, v.ref); add(`${grp} - ${t[1]} (${t[2]}) sem carga`, v.sem_carga); });
+    add('Funcionamento', x.func); add('Início do teste', x.teste_inicio); add('Observação do teste', x.teste_obs);
+    GRUPOS.forEach(([g, nome, itens]) => itens.forEach(it => { const v = (x.verificacoes || {})[g + '_' + slug(it)] || {};
+      add(`${nome} - ${it} (antes)`, v.antes); add(`${nome} - ${it} (depois)`, v.depois); add(`${nome} - ${it} (obs.)`, v.obs); }));
+    add('Status da preventiva', x.status_final); add('Observações gerais', x.obs_geral);
+    add('Total OK', x.resumo.ok); add('Total NOK', x.resumo.nok); add('Total N/A', x.resumo.na);
+    add('Fotos antes', fotos.antes.length); add('Fotos depois', fotos.depois.length);
+    add('Relatório (PDF)', x.pdf);
+    return col;
+  }
+  function montarDados(r, c, id){
+    const x = Object.assign({}, r, { id, criadoEm: new Date().toISOString(), resumo: { ok: c.ok, nok: c.nok, na: c.na } });
+    x.pdf = nomePdf(id, r.cabecalho);
+    return x;
+  }
+
+  $('#gerar-pdf').onclick = async () => {
+    const { r, c } = atualizar(), b = $('#gerar-pdf');
+    b.disabled = true; msg('Gerando o PDF…');
+    try { const x = montarDados(r, c, 'RASCUNHO'); oferecer(await montarPdf(x), x.pdf, $('#baixar'));
+      $('#baixar').textContent = 'Abrir o PDF'; msg('PDF pronto. Toque em “Abrir o PDF”.', 'okm'); }
+    catch (e) { msg('Não foi possível gerar o PDF neste aparelho.', 'err'); }
+    finally { b.disabled = false; }
+  };
+
+  frm.addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const { r, c } = atualizar();
+    const falta = [];
+    if (!r.cabecalho.unidade) falta.push('Unidade / Site');
+    if (!r.cabecalho.tecnico) falta.push('Técnico');
+    if (!r.cabecalho.data) falta.push('Data');
+    if (!r.status_final) falta.push('Status da preventiva');
+    if (c.pend) falta.push(c.pend + ' item(ns) NOK sem observação');
+    if (falta.length) { msg('Falta preencher: ' + falta.join(', ') + '.', 'err'); return; }
+    if (!FLUXO) { msg('O envio ainda não foi configurado. Avise quem administra o formulário.', 'err'); return; }
+    if (!navigator.onLine) { msg('Sem internet agora. O preenchimento fica salvo neste aparelho; envie quando tiver sinal.', 'err'); return; }
+    $('#enviar').disabled = true; $('#baixar').hidden = true;
+    try {
+      if (!pendente) {
+        msg('Gerando o relatório em PDF…');
+        const x = montarDados(r, c, novoId());
+        const bin = await montarPdf(x);
+        msg('Enviando o relatório…');
+        const col = linhaExcel(x);
+        await postar({ tipo: 'relatorio', id: x.id, colunas: col.map(z => z[0]), valores: col.map(z => String(z[1])) });
+        pendente = { id: x.id, nome: x.pdf, bin };
+      }
+      msg(`Enviando o PDF com ${fotos.antes.length + fotos.depois.length} foto(s)…`);
+      await postar({ tipo: 'pdf', id: pendente.id, nome: pendente.nome, base64: btoa(pendente.bin) });
+      const p = pendente; pendente = null;
+      limpar(true);
+      oferecer(p.bin, p.nome, $('#baixar')); $('#baixar').textContent = 'Baixar o PDF enviado';
+      msg(`Relatório ${p.id} enviado com o PDF. O formulário foi limpo para a próxima preventiva.`, 'okm');
+    } catch (e) {
+      if (pendente) {
+        $('#enviar').textContent = 'Enviar o PDF de novo';
+        msg('Os dados foram gravados, mas o PDF com as fotos não subiu. Verifique a conexão e toque em “Enviar o PDF de novo”.', 'err');
+      } else msg('Não foi possível enviar (' + (e && e.message || 'erro de conexão') + '). O preenchimento continua aqui; tente de novo.', 'err');
+    } finally { $('#enviar').disabled = false; }
+  });
+
+  function limpar(manterMsg){
+    frm.reset(); $('#pedidos').innerHTML = ''; addPedido();
+    [...OS, ...EQ, ...MO].forEach(([k, , tipo, pad]) => { if (pad && tipo !== 'select') $('#' + k).value = pad; });
+    TESTE.filter(t => t.length > 1).forEach(t => $('#ref_' + t[0]).value = t[3]);
+    $('#data').value = hoje();
+    fotos.antes = []; fotos.depois = []; desenharFotos('antes'); desenharFotos('depois'); $('#msg-fotos').textContent = '';
+    pendente = null; $('#enviar').textContent = 'Enviar relatório';
+    try { localStorage.removeItem(RK); } catch (e) {}
+    $('#confirma-limpar').hidden = true; atualizar();
+    if (!manterMsg) { msg(''); $('#baixar').hidden = true; }
+    window.scrollTo(0, 0);
+  }
+  $('#limpar').onclick = () => { $('#confirma-limpar').hidden = false; };
+  $('#limpar-nao').onclick = () => { $('#confirma-limpar').hidden = true; };
+  $('#limpar-sim').onclick = () => limpar();
+  window.addEventListener('beforeunload', ev => { if (pendente || fotos.antes.length || fotos.depois.length) { ev.preventDefault(); ev.returnValue = ''; } });
+})();
+</script>
+</body>
+</html>
