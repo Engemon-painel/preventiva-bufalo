@@ -151,7 +151,7 @@ html{scroll-behavior:smooth}
 
 <div class="wrap">
   <header class="top">
-    <div class="brand"><small>Engemon · Preventiva Bufalo</small><h1>Manutenção Preventiva de Geradores Portáteis</h1></div>
+    <div class="brand"><h1>Manutenção Preventiva de Geradores Portáteis</h1></div>
   </header>
 
   <div id="view-novo">
@@ -565,7 +565,6 @@ html{scroll-behavior:smooth}
     d.pagina();
     d.ret(0, 0, W, 66, VERDE);
     d.texto(M, 16, 'Manutenção Preventiva de Geradores Portáteis', 18, true, '#FFFFFF');
-    d.texto(M, 42, 'Engemon · Preventiva Bufalo', 9, false, '#DCEBE2');
     const dir = `${x.id}  ·  ${fmtV(h.data)}`; d.texto(W - M - medir(dir, 9, false), 42, dir, 9, false, '#FFFFFF');
     d.y = 84;
     const secao = t => { d.cabe(44); d.texto(M, d.y, t, 12, true, VERDE); d.ret(M, d.y + 16, LW, 1, VERDE); d.y += 24; };
@@ -747,7 +746,7 @@ html{scroll-behavior:smooth}
     } catch (e) {
       if (pendente) {
         $('#enviar').textContent = 'Enviar o PDF de novo';
-        msg('Os dados foram gravados, mas o PDF com as fotos não subiu. Verifique a conexão e toque em “Enviar o PDF de novo”.', 'err');
+        msg('Os dados foram gravados, mas o PDF com as fotos não subiu (' + (e && e.message || 'erro de conexão') + '). Toque em “Enviar o PDF de novo”.', 'err');
       } else msg('Não foi possível enviar (' + (e && e.message || 'erro de conexão') + '). O preenchimento continua aqui; tente de novo.', 'err');
     } finally { $('#enviar').disabled = false; }
   });
