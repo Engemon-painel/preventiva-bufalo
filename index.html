@@ -574,10 +574,11 @@ html{scroll-behavior:smooth}
   // monta o relatório: devolve o PDF como "string binária" (1 caractere = 1 byte)
   async function montarPdf(x){
     const d = novoPdf(), W = d.W, M = d.M, LW = W - 2 * M, h = x.cabecalho;
-    const VERDE = '#2E6A4E', CINZA = '#5B6661', LINHA = '#D5DAD5', OKC = '#1F7A4A', NOKC = '#B4332B';
+    const VERDE = '#1F4E8C', CINZA = '#5B6661', LINHA = '#D5DAD5', OKC = '#1F7A4A', NOKC = '#B4332B';
     d.pagina();
     d.ret(0, 0, W, 66, VERDE);
     d.texto(M, 16, 'Manutenção Preventiva de Geradores Portáteis', 18, true, '#FFFFFF');
+    if (h.nr_motor) d.texto(M, 42, 'Nº do motor: ' + h.nr_motor, 9, true, '#FFFFFF');
     const dir = `${x.id}  ·  ${fmtV(h.data)}`; d.texto(W - M - medir(dir, 9, false), 42, dir, 9, false, '#FFFFFF');
     d.y = 84;
     const secao = t => { d.cabe(44); d.texto(M, d.y, t, 12, true, VERDE); d.ret(M, d.y + 16, LW, 1, VERDE); d.y += 24; };
@@ -687,7 +688,7 @@ html{scroll-behavior:smooth}
     return 'PB' + d.getFullYear() + dois(d.getMonth() + 1) + dois(d.getDate()) + '-' + dois(d.getHours()) + dois(d.getMinutes()) + dois(d.getSeconds()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
   }
   const limpaNome = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_|_$/g, '').slice(0, 30);
-  const nomePdf = (id, h) => [h.data || '', limpaNome(h.unidade) || 'site', id].join('_') + '.pdf';
+  const nomePdf = (id, h) => [h.data || '', limpaNome(h.unidade) || 'site', h.nr_motor ? 'Motor-' + limpaNome(h.nr_motor) : '', id].filter(Boolean).join('_') + '.pdf';
 
   // uma linha por relatório na planilha (colunas na mesma ordem sempre)
   function linhaExcel(x){
