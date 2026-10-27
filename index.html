@@ -688,7 +688,10 @@ html{scroll-behavior:smooth}
     return 'PB' + d.getFullYear() + dois(d.getMonth() + 1) + dois(d.getDate()) + '-' + dois(d.getHours()) + dois(d.getMinutes()) + dois(d.getSeconds()) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
   }
   const limpaNome = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_|_$/g, '').slice(0, 30);
-  const nomePdf = (id, h) => [h.data || '', limpaNome(h.unidade) || 'site', h.nr_motor ? 'Motor-' + limpaNome(h.nr_motor) : '', id].filter(Boolean).join('_') + '.pdf';
+  const nomePdf = (id, h) => {
+    const dt = h.data ? h.data.split('-').reverse().join('-') : '';   // 27-10-2026
+    return (h.nr_motor ? [dt, 'Motor', limpaNome(h.nr_motor)] : [dt, limpaNome(h.unidade) || 'site', id]).filter(Boolean).join('_') + '.pdf';
+  };
 
   // uma linha por relatório na planilha (colunas na mesma ordem sempre)
   function linhaExcel(x){
