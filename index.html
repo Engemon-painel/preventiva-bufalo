@@ -211,9 +211,10 @@ html{scroll-behavior:smooth}
         <h2>USCA / QTA · Físico e estado</h2>
         <div class="chk" id="c-usca"></div>
       </section>
-      <section class="blk" id="s-sala">
-        <h2>Sala do gerador</h2>
-        <div class="chk" id="c-sala"></div>
+      <section class="blk" id="s-op">
+        <h2>Operação e proteções</h2>
+        <p class="hint">Modo de operação, teste das proteções, nível de diesel e tempos.</p>
+        <div class="grid" id="g-op"></div>
       </section>
       <section class="blk" id="s-fotos">
         <h2>Fotos</h2>
@@ -315,11 +316,23 @@ html{scroll-behavior:smooth}
   const USCA = ['Estado e limpeza do painel','Identificações do painel','Medidores do painel (voltímetro, amperímetro etc.)',
     'Componentes frontais do painel (chaves, botões etc.)','Componentes internos do painel (bornes, relés etc.)',
     'Conexões elétricas (estado das ligações de comando)','Regulador de tensão','Contator / disjuntor','Bobinas do disjuntor'];
-  const SALA = ['Estado da sala','Estado do equipamento'];
-  const GRUPOS = [['mot','Motor',MOTOR],['ger','Gerador',GERADOR],['usca','USCA/QTA',USCA],['sala','Sala',SALA]];
+  const GRUPOS = [['mot','Motor',MOTOR],['ger','Gerador',GERADOR],['usca','USCA/QTA',USCA]];
+  const ST = ['','OK','NOK','N/A'];
+  const OPER = [
+    ['op_modo','Operacional','select',['','Manual','Automático']],
+    ['prot_oleo','Proteção do motor · Baixa pressão de óleo','select',ST],
+    ['prot_temp','Proteção do motor · Alta temperatura','select',ST],
+    ['prot_ruido','Proteção do motor · Ruídos ou vibrações anormais','select',ST],
+    ['prot_tensao','Proteção do gerador · Tensão','select',ST],
+    ['prot_freq','Proteção do gerador · Frequência','select',ST],
+    ['nivel_diesel','Nível do tanque de diesel (%)','number'],
+    ['t_falta_rede','Tempo de falta de rede (segundos)','number'],
+    ['t_assumir','Tempo para assumir carga (segundos)','number'],
+    ['fumaca','Foi feito o teste do índice de fumaça (escala Ringelmann)?','select',['','Sim','Não'],true]
+  ];
   const OBS = ['','Verificado','Resolvido','Pendente','Substituído','Não se aplica'];
   const NAV = [['s-os','OS'],['s-eq','Equipamento'],['s-mo','Mão de obra'],['s-esc','Escopo'],['s-tst','Teste'],
-    ['s-mot','Motor','mot'],['s-ger','Gerador','ger'],['s-usca','USCA/QTA','usca'],['s-sala','Sala','sala'],['s-fotos','Fotos'],['s-fim','Fechamento']];
+    ['s-mot','Motor','mot'],['s-ger','Gerador','ger'],['s-usca','USCA/QTA','usca'],['s-op','Proteções'],['s-fotos','Fotos'],['s-fim','Fechamento']];
 
   const $ = s => document.querySelector(s);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -339,7 +352,7 @@ html{scroll-behavior:smooth}
       return `<div class="f${largo ? ' wide' : ''}"><label class="l" for="${k}">${rot}${REQ.includes(k) ? '<span class="req" aria-hidden="true">*</span>' : ''}</label>${ctl}</div>`;
     }).join('');
   }
-  campos('#g-os', OS); campos('#g-eq', EQ); campos('#g-mo', MO);
+  campos('#g-os', OS); campos('#g-eq', EQ); campos('#g-mo', MO); campos('#g-op', OPER);
   $('#data').value = hoje();
 
   $('#t-tst').innerHTML = TESTE.map(t => t.length === 1
@@ -381,7 +394,7 @@ html{scroll-behavior:smooth}
   const radio = n => { const e = document.querySelector(`input[name="${n}"]:checked`); return e ? e.value : ''; };
   function ler(){
     const r = { cabecalho: {}, teste: {}, verificacoes: {}, pedidos: [] };
-    [...OS, ...EQ, ...MO].forEach(([k]) => r.cabecalho[k] = $('#' + k).value.trim());
+    [...OS, ...EQ, ...MO, ...OPER].forEach(([k]) => r.cabecalho[k] = $('#' + k).value.trim());
     ['escopo','desc_pedidos','func','teste_inicio','teste_obs','status_final','obs_geral'].forEach(k => r[k] = $('#' + k).value.trim());
     TESTE.filter(t => t.length > 1).forEach(t => r.teste[t[0]] = { ref: $('#ref_' + t[0]).value.trim(), sem_carga: $('#sc_' + t[0]).value.trim() });
     GRUPOS.forEach(([g, , itens]) => itens.forEach(it => { const k = g + '_' + slug(it);
@@ -570,10 +583,13 @@ html{scroll-behavior:smooth}
     const secao = t => { d.cabe(44); d.texto(M, d.y, t, 12, true, VERDE); d.ret(M, d.y + 16, LW, 1, VERDE); d.y += 24; };
     const grade = (lista, val) => { const n = 3, cw = LW / n;
       for (let i = 0; i < lista.length; i += n) {
-        const row = lista.slice(i, i + n).map(([k, rot]) => ({ rot, lin: quebrar(fmtV(val(k)), 9, false, cw - 10) }));
-        const hh = 12 + Math.max(...row.map(c => c.lin.length)) * 11 + 6;
+        const row = lista.slice(i, i + n).map(([k, rot]) => ({ rl: quebrar(rot.toUpperCase(), 6.5, true, cw - 10), lin: quebrar(fmtV(val(k)), 9, false, cw - 10) }));
+        const nr = Math.max(...row.map(c => c.rl.length));
+        const hh = nr * 8 + 4 + Math.max(...row.map(c => c.lin.length)) * 11 + 6;
         d.cabe(hh);
-        row.forEach((c, j) => { const x0 = M + j * cw; d.texto(x0, d.y, c.rot.toUpperCase(), 6.5, true, CINZA); c.lin.forEach((l, q) => d.texto(x0, d.y + 10 + q * 11, l, 9)); });
+        row.forEach((c, j) => { const x0 = M + j * cw;
+          c.rl.forEach((l, q) => d.texto(x0, d.y + q * 8, l, 6.5, true, CINZA));
+          c.lin.forEach((l, q) => d.texto(x0, d.y + nr * 8 + 2 + q * 11, l, 9)); });
         d.y += hh;
       }
       d.y += 4; };
@@ -616,6 +632,8 @@ html{scroll-behavior:smooth}
     tabela([{ t: 'ITEM', w: .46 }, { t: 'ANTES', w: .12 }, { t: 'DEPOIS', w: .12 }, { t: 'OBSERVAÇÃO', w: .30 }],
       GRUPOS.flatMap(([g, nome, itens]) => [{ grupo: true, cel: [nome] }].concat(itens.map(it => { const v = (x.verificacoes || {})[g + '_' + slug(it)] || {};
         return { cel: [it, v.antes, v.depois, v.obs], cor: [null, corSt(v.antes), corSt(v.depois), null] }; }))));
+
+    secao('Operação e proteções'); grade(OPER, k => h[k]);
 
     secao('Fechamento');
     grade([['st', 'Status da preventiva'], ['ok', 'Itens OK'], ['nok', 'Itens NOK']], k => ({ st: x.status_final, ok: x.resumo.ok, nok: x.resumo.nok })[k]);
@@ -677,7 +695,7 @@ html{scroll-behavior:smooth}
     const add = (nome, v) => col.push([nome, v == null ? '' : v]);
     add('ID', x.id);
     add('Enviado em', new Date(x.criadoEm).toLocaleString('pt-BR'));
-    [...OS, ...EQ, ...MO].forEach(([k, rot]) => add(rot, h[k]));
+    [...OS, ...EQ, ...MO, ...OPER].forEach(([k, rot]) => add(rot, h[k]));
     add('Escopo dos serviços', x.escopo);
     add('Pedidos em aberto', (x.pedidos || []).filter(p => p.pedido).map(p => `${p.pedido} (${p.qtd}) realizado: ${p.realizado || '-'}${p.justificativa ? ' - ' + p.justificativa : ''}`).join(' | '));
     add('Descrição dos pedidos', x.desc_pedidos);
@@ -753,7 +771,7 @@ html{scroll-behavior:smooth}
 
   function limpar(manterMsg){
     frm.reset(); $('#pedidos').innerHTML = ''; addPedido();
-    [...OS, ...EQ, ...MO].forEach(([k, , tipo, pad]) => { if (pad && tipo !== 'select') $('#' + k).value = pad; });
+    [...OS, ...EQ, ...MO, ...OPER].forEach(([k, , tipo, pad]) => { if (pad && tipo !== 'select') $('#' + k).value = pad; });
     TESTE.filter(t => t.length > 1).forEach(t => $('#ref_' + t[0]).value = t[3]);
     $('#data').value = hoje();
     fotos.antes = []; fotos.depois = []; desenharFotos('antes'); desenharFotos('depois'); $('#msg-fotos').textContent = '';
